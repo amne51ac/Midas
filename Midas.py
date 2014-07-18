@@ -8,19 +8,6 @@ All content licensed under GPL unless otherwise noted or required.
 
 GPL: http://www.gnu.org/copyleft/gpl.html
 """
-'''
-from tkfiledialog import askopenfilename
-
-class Midas:
-        
-    def __init__(self):
-        #i don't really know what needs to be initialized but okay
-    
-    def import(self):
-        #use params to understand the format of the import file
-        filename = askopenfilename()
-        with open(filename) as myfiel
-'''
 
 from math import log
 
@@ -113,3 +100,5 @@ class Midas():
         
     def headers(self):
         return self.values[0].keys()
+        
+    def 
