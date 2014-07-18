@@ -12,8 +12,26 @@ GPL: http://www.gnu.org/copyleft/gpl.html
 from math import log
 
 class Midas():
+    """
+Import and append analysis to .csv table of data with headers.
 
-    values = []    
+Available methods are:
+
+        analyze(self)
+        analyze(self, distancepc=470, offset=0.753)
+        headers(self)
+        
+Appropriate .csv format is (not order restricted, additional columns permitted):
+
+        ID Number, X Position, Y Position, B,     V,     R,     I,     RA,    Declination...
+        int,       float,      float,      float, float, float, float, float, float...
+        
+There must be the same number of entries in each record, including header.
+Blank cells are permitted in the header, not in data (use 0.0).
+0 value not permitted in ID column.
+    """
+    
+    __values = []    
 
     #def __init__(self):    
 
@@ -24,15 +42,20 @@ class Midas():
         try:
             midas = [line.strip().split(',') for line in open("Midas Raw\
  Data.csv", 'r')]
-        except:
+        except TypeError:
             raise TypeError('Invalid File Format, must be .csv')
+        except IOError:
+            raise
         try:
             for i in midas[1:]:
                 newmidas.append({})
                 for index, j in enumerate(i):
                     if midas[0][index]:
                         if 'ID' in midas[0][index]:
-                            newmidas[count]['ID'] = int(j)
+                            if int(j) > 0:
+                                newmidas[count]['ID'] = int(j)
+                            else:
+                                raise TypeError('ID must integer be greater than 0')
                         else:
                             newmidas[count][midas[0][index]] = float(j)
                     else:
@@ -96,7 +119,7 @@ class Midas():
                                     6.1966*(self.values[i]['bv'])+1.351
                                     ))/offset
                                     
-    def verify_input_data(self):
+    def __verify_input_data(self):
         len_check = len(self.values[1])
         for i in self.values:
             if type(i) is not dict:
@@ -111,7 +134,7 @@ class Midas():
         return True
                                                 
     def analyze(self, distancepc=470, offset=0.753):
-        if self.verify_input_data():
+        if self.__verify_input_data():
             self.__absolute_mag(distancepc)
             self.__b_minus_v()
             self.__expected_b_minus_v()
@@ -122,6 +145,9 @@ class Midas():
         else:
             raise TypeError('Invalid File Format, please ensure each column '+
                             'is properly headed, entry lengths are equal')
-        
+    
+    def get_values(self):
+        return self.__values
+    
     def headers(self):
         return self.values[0].keys()
