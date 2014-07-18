@@ -15,16 +15,21 @@ class Midas():
     """
 Import and append analysis to .csv table of data with headers.
 
+Midas(filename='Raw Midas Data.csv')
+
 Available methods are:
 
-        analyze(self)
-        analyze(self, distancepc=470, offset=0.753)
         headers(self)
+            displays column headers for the currently loaded file
+        
+        get_values(self)
+            returns all data contained within self.__values
+            
         
 Appropriate .csv format is (not order restricted, additional columns permitted):
 
         ID Number, X Position, Y Position, B,     V,     R,     I,     RA,    Declination...
-        int,       float,      float,      float, float, float, float, float, float...
+        int,       float,      float...
         
 There must be the same number of entries in each record, including header.
 Blank cells are permitted in the header, not in data (use 0.0).
@@ -35,13 +40,12 @@ Blank cells are permitted in the header, not in data (use 0.0).
 
     #def __init__(self):    
 
-    def __init__(self):
+    def __init__(self, filename='Midas Raw Data.csv'):
 
         newmidas = []
         count = 0
         try:
-            midas = [line.strip().split(',') for line in open("Midas Raw\
- Data.csv", 'r')]
+            midas = [line.strip().split(',') for line in open(filename, 'r')]
         except TypeError:
             raise TypeError('Invalid File Format, must be .csv')
         except IOError:
