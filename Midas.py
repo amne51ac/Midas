@@ -18,20 +18,27 @@ class Midas():
     #def __init__(self):    
 
     def __init__(self):
+
         newmidas = []
         count = 0
-        midas = [line.strip().split(',') for line in open("Midas Raw\
+        try:
+            midas = [line.strip().split(',') for line in open("Midas Raw\
  Data.csv", 'r')]
-        for i in midas[1:]:
-            newmidas.append({})
-            for index, j in enumerate(i):
-                if midas[0][index]:
-                    if 'ID' in midas[0][index]:
-                        newmidas[count]['ID'] = int(j)
+        except:
+            raise TypeError('Invalid File Format, must be .csv')
+        try:
+            for i in midas[1:]:
+                newmidas.append({})
+                for index, j in enumerate(i):
+                    if midas[0][index]:
+                        if 'ID' in midas[0][index]:
+                            newmidas[count]['ID'] = int(j)
+                        else:
+                            newmidas[count][midas[0][index]] = float(j)
                     else:
-                        newmidas[count][midas[0][index]] = float(j)
-                else:
-                    newmidas[count]['unk' + str(index)] = float(j)
+                        newmidas[count]['unk' + str(index)] = float(j)
+        except:
+            raise TypeError('Invalid File Format, check headers and data types')
                     
             count += 1
         self.values = newmidas
@@ -88,17 +95,33 @@ class Midas():
                                     9.8787*(self.values[i]['bv']**2)+
                                     6.1966*(self.values[i]['bv'])+1.351
                                     ))/offset
+                                    
+    def verify_input_data(self):
+        len_check = len(self.values[1])
+        for i in self.values:
+            if type(i) is not dict:
+                return False
+            if len(i) != len_check:
+                return False
+            for key,j in i.iteritems():
+                if type(j) not in (float, int):
+                    return False
+                elif type(key) is not str:
+                    return False
+        return True
                                                 
     def analyze(self, distancepc=470, offset=0.753):
-        self.__absolute_mag(distancepc)
-        self.__b_minus_v()
-        self.__expected_b_minus_v()
-        self.__b_minus_v_deviation()
-        self.__binary_expected_b_minus_v(offset)
-        self.__binary_b_minus_v_deviation()
-        self.__q_value(offset)
+        if self.verify_input_data():
+            self.__absolute_mag(distancepc)
+            self.__b_minus_v()
+            self.__expected_b_minus_v()
+            self.__b_minus_v_deviation()
+            self.__binary_expected_b_minus_v(offset)
+            self.__binary_b_minus_v_deviation()
+            self.__q_value(offset)
+        else:
+            raise TypeError('Invalid File Format, please ensure each column '+
+                            'is properly headed, entry lengths are equal')
         
     def headers(self):
         return self.values[0].keys()
-        
-    def 
