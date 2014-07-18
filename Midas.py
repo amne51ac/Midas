@@ -55,73 +55,74 @@ Blank cells are permitted in the header, not in data (use 0.0).
                             if int(j) > 0:
                                 newmidas[count]['ID'] = int(j)
                             else:
-                                raise TypeError('ID must integer be greater than 0')
+                                newmidas[count]['ID'] = count + 1000000
                         else:
                             newmidas[count][midas[0][index]] = float(j)
                     else:
                         newmidas[count]['unk' + str(index)] = float(j)
+                count += 1
         except:
             raise TypeError('Invalid File Format, check headers and data types')
                     
-            count += 1
-        self.values = newmidas
+        self.__values = newmidas
+        self.__analyze()
 
     def __absolute_mag(self, distance_pc=470):
-        for i in range(len(self.values)):
-            self.values[i]['mv'] = (self.values[i]['V'] -
+        for i in range(len(self.__values)):
+            self.__values[i]['mv'] = (self.__values[i]['V'] -
                                     5*log((distance_pc/10), 10))
 
     def __b_minus_v(self):
-        for i in range(len(self.values)):
-            self.values[i]['bv'] = self.values[i]['B'] - self.values[i]['V']
+        for i in range(len(self.__values)):
+            self.__values[i]['bv'] = self.__values[i]['B'] - self.__values[i]['V']
             '''except:
                 print 'The necessary values for the b-v operation are missing'
                 break'''
 
     def __expected_b_minus_v(self):
-        for i in range(len(self.values)):
-            self.values[i]['xbv'] = ((0.0000176008*(self.values[i]['mv']**6))-
-                                     (0.0005951859*(self.values[i]['mv']**5))+
-                                     (0.0076215956*(self.values[i]['mv']**4))-
-                                     (0.0467622819*(self.values[i]['mv']**3))+
-                                     (0.1423842899*(self.values[i]['mv']**2))-
-                                     (0.0185234255*self.values[i]['mv'])-
+        for i in range(len(self.__values)):
+            self.__values[i]['xbv'] = ((0.0000176008*(self.__values[i]['mv']**6))-
+                                     (0.0005951859*(self.__values[i]['mv']**5))+
+                                     (0.0076215956*(self.__values[i]['mv']**4))-
+                                     (0.0467622819*(self.__values[i]['mv']**3))+
+                                     (0.1423842899*(self.__values[i]['mv']**2))-
+                                     (0.0185234255*self.__values[i]['mv'])-
                                      0.1413034474)
 
     def __b_minus_v_deviation(self):
-        for i in range(len(self.values)):
-            self.values[i]['bvdev'] = (self.values[i]['bv'] -
-                                     self.values[i]['xbv'])
+        for i in range(len(self.__values)):
+            self.__values[i]['bvdev'] = (self.__values[i]['bv'] -
+                                     self.__values[i]['xbv'])
 
     def __binary_expected_b_minus_v(self, offset=0.753):
-        for i in range(len(self.values)):
-            self.values[i]['bxbv'] = ((0.0000176008*((self.values[i]['mv']+offset)**6))-
-                                     (0.0005951859*((self.values[i]['mv']+offset)**5))+
-                                     (0.0076215956*((self.values[i]['mv']+offset)**4))-
-                                     (0.0467622819*((self.values[i]['mv']+offset)**3))+
-                                     (0.1423842899*((self.values[i]['mv']+offset)**2))-
-                                     (0.0185234255*(self.values[i]['mv']+offset))-
+        for i in range(len(self.__values)):
+            self.__values[i]['bxbv'] = ((0.0000176008*((self.__values[i]['mv']+offset)**6))-
+                                     (0.0005951859*((self.__values[i]['mv']+offset)**5))+
+                                     (0.0076215956*((self.__values[i]['mv']+offset)**4))-
+                                     (0.0467622819*((self.__values[i]['mv']+offset)**3))+
+                                     (0.1423842899*((self.__values[i]['mv']+offset)**2))-
+                                     (0.0185234255*(self.__values[i]['mv']+offset))-
                                      0.1413034474)
                                      
     def __binary_b_minus_v_deviation(self):
-        for i in range(len(self.values)):
-            self.values[i]['binbvdev'] = (self.values[i]['bv'] -
-                                          self.values[i]['bxbv'])
+        for i in range(len(self.__values)):
+            self.__values[i]['binbvdev'] = (self.__values[i]['bv'] -
+                                          self.__values[i]['bxbv'])
 
     def __q_value(self, offset=0.753):
-        for i in range(len(self.values)):
-            self.values[i]['Q'] = (-self.values[i]['mv']+
-                                   (-7.5071*(self.values[i]['bv']**6)+
-                                    33.231*(self.values[i]['bv']**5)-
-                                    52.543*(self.values[i]['bv']**4)+
-                                    35.909*(self.values[i]['bv']**3)-
-                                    9.8787*(self.values[i]['bv']**2)+
-                                    6.1966*(self.values[i]['bv'])+1.351
+        for i in range(len(self.__values)):
+            self.__values[i]['Q'] = (-self.__values[i]['mv']+
+                                   (-7.5071*(self.__values[i]['bv']**6)+
+                                    33.231*(self.__values[i]['bv']**5)-
+                                    52.543*(self.__values[i]['bv']**4)+
+                                    35.909*(self.__values[i]['bv']**3)-
+                                    9.8787*(self.__values[i]['bv']**2)+
+                                    6.1966*(self.__values[i]['bv'])+1.351
                                     ))/offset
                                     
     def __verify_input_data(self):
-        len_check = len(self.values[1])
-        for i in self.values:
+        len_check = len(self.__values[1])
+        for i in self.__values:
             if type(i) is not dict:
                 return False
             if len(i) != len_check:
@@ -133,7 +134,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
                     return False
         return True
                                                 
-    def analyze(self, distancepc=470, offset=0.753):
+    def __analyze(self, distancepc=470, offset=0.753):
         if self.__verify_input_data():
             self.__absolute_mag(distancepc)
             self.__b_minus_v()
@@ -150,4 +151,4 @@ Blank cells are permitted in the header, not in data (use 0.0).
         return self.__values
     
     def headers(self):
-        return self.values[0].keys()
+        return self.__values[0].keys()
