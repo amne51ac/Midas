@@ -10,6 +10,9 @@ GPL: http://www.gnu.org/copyleft/gpl.html
 """
 
 from math import log
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 
 class Midas():
     """
@@ -19,11 +22,15 @@ Midas(filename='Raw Midas Data.csv')
 
 Available methods are:
 
-        headers(self)
-            displays column headers for the currently loaded file
+        headers()
+            Displays column headers for the currently loaded file.
         
-        get_values(self)
-            returns all data contained within self.__values
+        get_values()
+            Returns all data contained within self.__values.
+            
+        x_y_map()
+            Returns a map of all of the stars in the base, color formatted by
+            absolute magnitude.
             
         
 Appropriate .csv format is (not order restricted, additional columns permitted):
@@ -70,6 +77,8 @@ Blank cells are permitted in the header, not in data (use 0.0).
                     
         self.__values = newmidas
         self.__analyze()
+        #self.x_y_map()
+        
 
     def __absolute_mag(self, distance_pc=470):
         for i in range(len(self.__values)):
@@ -156,3 +165,90 @@ Blank cells are permitted in the header, not in data (use 0.0).
     
     def headers(self):
         return self.__values[0].keys()
+
+    def x_y_map(self):
+
+        x = []
+        y = []
+        c = []
+        s = []
+        m = []
+        
+        for i in self.__values:
+            x.append(i['X Position'])
+            y.append(i['Y Position'])
+            m.append(i['mv'])
+            if 1 >= i['Q'] >= 0:
+                c.append(i['Q'])
+            else:
+                c.append(0)
+            s.append(i['bv'])
+            
+        for i in c:
+            i = i/max(c)
+        for i in m:
+            i = i/max(m)
+        
+        fig, ax = plt.subplots()
+        ax.scatter(x, y, c=m, edgecolors='None', cmap='OrRd', alpha = .5)
+        ax.grid(True)
+        fig.tight_layout()
+        plt.ion()
+        plt.show()
+
+    def import_iso(age=.2):
+        iso = []
+        with open("ISO.csv") as myfile: 
+            iso_presets = myfile.readline().split(',')
+            iso_headings = myfile.readline().split(',')
+            while True:
+                temp = myfile.readline().split(',')
+                try:
+                    temp = float(temp[1].split()[0])
+                except:
+                    continue
+                if age == temp:
+                    while True:
+                        temp2 = myfile.readline().split(',')
+                        if temp2[1]:
+                            iso.append(temp2)
+                        else:
+                            break
+                    break
+            
+        newiso = []
+        
+        for i in iso:
+            newi = {}
+            for j in range(len(i)):
+                newi[iso_headings[j]] = float(i[j])
+            newiso.append(newi)
+        
+        isomap = []
+        
+        for i in newiso:
+            isomap.append([i['Mv'], i['B-V']])
+        
+        return isomap
+
+    def fit_iso(self)
+        x = []
+        y = []
+        isomap = import_iso()
+        for i,j in isomap:
+            if (i < 12) and (i > 1):
+                y.append(i)
+                x.append(j)
+        
+        # fit the data with a 4th degree polynomial
+        z4 = polyfit(x, y, 6) 
+        p4 = poly1d(z4) # construct the polynomial 
+        
+        z5 = polyfit(x, y, 11)
+        p5 = poly1d(z5)
+        
+        xx = linspace(-0.1, 1.65)
+        pylab.plot(x, y, 'o', xx, p4(xx),'-g', xx, p5(xx),'-b')
+        pylab.legend(['Isochrone', '6th degree poly', '11th degree poly'])
+        pylab.gca().invert_yaxis()
+        pylab.show()
