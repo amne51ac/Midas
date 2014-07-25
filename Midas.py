@@ -12,7 +12,8 @@ GPL: http://www.gnu.org/copyleft/gpl.html
 from math import log
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
+#import matplotlib.colors as colors
+import pylab
 
 class Midas():
     """
@@ -43,7 +44,8 @@ Blank cells are permitted in the header, not in data (use 0.0).
 0 value not permitted in ID column.
     """
     
-    __values = []    
+    __values = []
+    __iso_values = []
 
     #def __init__(self):    
 
@@ -196,7 +198,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
         plt.ion()
         plt.show()
 
-    def import_iso(age=.2):
+    def import_iso(self, age=.2):
         iso = []
         with open("ISO.csv") as myfile: 
             iso_presets = myfile.readline().split(',')
@@ -234,20 +236,19 @@ Blank cells are permitted in the header, not in data (use 0.0).
     def fit_iso(self):
         x = []
         y = []
-        isomap = import_iso()
+        isomap = self.import_iso()
         for i,j in isomap:
             if (i < 12) and (i > 1):
                 y.append(i)
                 x.append(j)
-        
         # fit the data with a 4th degree polynomial
-        z4 = polyfit(x, y, 6) 
-        p4 = poly1d(z4) # construct the polynomial 
+        z4 = np.polyfit(x, y, 6) 
+        p4 = np.poly1d(z4) # construct the polynomial 
+        print z4
+        z5 = np.polyfit(x, y, 11)
+        p5 = np.poly1d(z5)
         
-        z5 = polyfit(x, y, 11)
-        p5 = poly1d(z5)
-        
-        xx = linspace(-0.1, 1.65)
+        xx = np.linspace(-0.1, 1.65)
         pylab.plot(x, y, 'o', xx, p4(xx),'-g', xx, p5(xx),'-b')
         pylab.legend(['Isochrone', '6th degree poly', '11th degree poly'])
         pylab.gca().invert_yaxis()
