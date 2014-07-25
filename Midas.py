@@ -10,7 +10,7 @@ GPL: http://www.gnu.org/copyleft/gpl.html
 """
 
 from tabulate import tabulate
-from math import log
+from math import log, acos, sin, cos, radians, degrees
 import numpy as np
 import matplotlib.pyplot as plt
 #import matplotlib.colors as colors
@@ -349,4 +349,10 @@ Blank cells are permitted in the header, not in data (use 0.0).
         
         return membership
         
-        
+        def distance(self, ra1, dec1, ra2, dec2):
+            return degrees(acos((sin(radians(dec1))*
+                                 sin(radians(dec2)))+
+                                (cos(radians(dec1))*
+                                 cos(radians(dec2))*
+                                 cos(radians(ra1)-
+                                     radians(ra2)))))
