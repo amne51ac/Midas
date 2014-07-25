@@ -99,7 +99,8 @@ Blank cells are permitted in the header, not in data (use 0.0).
 
     def __b_minus_v(self):
         for i in range(len(self.__values)):
-            self.__values[i]['bv'] = self.__values[i]['B'] - self.__values[i]['V']
+            self.__values[i]['bv'] = (self.__values[i]['B'] -
+                                      self.__values[i]['V'])
             '''except:
                 print 'The necessary values for the b-v operation are missing'
                 break'''
@@ -108,17 +109,17 @@ Blank cells are permitted in the header, not in data (use 0.0).
         fit = self.fit_iso_xbv()
         for i in range(len(self.__values)):
             self.__values[i]['xbv'] = ((fit[0]*(self.__values[i]['mv']**11))+
-                                     (fit[1]*(self.__values[i]['mv']**10))+
-                                     (fit[2]*(self.__values[i]['mv']**9))+
-                                     (fit[3]*(self.__values[i]['mv']**8))+
-                                     (fit[4]*(self.__values[i]['mv']**7))+
-                                     (fit[5]*(self.__values[i]['mv']**6))+
-                                     (fit[6]*(self.__values[i]['mv']**5))+
-                                     (fit[7]*(self.__values[i]['mv']**4))+
-                                     (fit[8]*(self.__values[i]['mv']**3))+
-                                     (fit[9]*(self.__values[i]['mv']**2))+
-                                     (fit[10]*self.__values[i]['mv'])+
-                                     fit[11])
+                                       (fit[1]*(self.__values[i]['mv']**10))+
+                                       (fit[2]*(self.__values[i]['mv']**9))+
+                                       (fit[3]*(self.__values[i]['mv']**8))+
+                                       (fit[4]*(self.__values[i]['mv']**7))+
+                                       (fit[5]*(self.__values[i]['mv']**6))+
+                                       (fit[6]*(self.__values[i]['mv']**5))+
+                                       (fit[7]*(self.__values[i]['mv']**4))+
+                                       (fit[8]*(self.__values[i]['mv']**3))+
+                                       (fit[9]*(self.__values[i]['mv']**2))+
+                                       (fit[10]*self.__values[i]['mv'])+
+                                        fit[11])
 
     def __b_minus_v_deviation(self):
         for i in range(len(self.__values)):
@@ -129,17 +130,17 @@ Blank cells are permitted in the header, not in data (use 0.0).
         fit = self.fit_iso_xbv()
         for i in range(len(self.__values)):
             self.__values[i]['bxbv'] = ((fit[0]*((self.__values[i]['mv']+offset)**11))+
-                                     (fit[1]*((self.__values[i]['mv']+offset)**10))+
-                                     (fit[2]*((self.__values[i]['mv']+offset)**9))+
-                                     (fit[3]*((self.__values[i]['mv']+offset)**8))+
-                                     (fit[4]*((self.__values[i]['mv']+offset)**7))+
-                                     (fit[5]*((self.__values[i]['mv']+offset)**6))+
-                                     (fit[6]*((self.__values[i]['mv']+offset)**5))+
-                                     (fit[7]*((self.__values[i]['mv']+offset)**4))+
-                                     (fit[8]*((self.__values[i]['mv']+offset)**3))+
-                                     (fit[9]*((self.__values[i]['mv']+offset)**2))+
-                                     (fit[10]*(self.__values[i]['mv']+offset))+
-                                     fit[11])
+                                        (fit[1]*((self.__values[i]['mv']+offset)**10))+
+                                        (fit[2]*((self.__values[i]['mv']+offset)**9))+
+                                        (fit[3]*((self.__values[i]['mv']+offset)**8))+
+                                        (fit[4]*((self.__values[i]['mv']+offset)**7))+
+                                        (fit[5]*((self.__values[i]['mv']+offset)**6))+
+                                        (fit[6]*((self.__values[i]['mv']+offset)**5))+
+                                        (fit[7]*((self.__values[i]['mv']+offset)**4))+
+                                        (fit[8]*((self.__values[i]['mv']+offset)**3))+
+                                        (fit[9]*((self.__values[i]['mv']+offset)**2))+
+                                        (fit[10]*(self.__values[i]['mv']+offset))+
+                                         fit[11])
                                      
     def __binary_b_minus_v_deviation(self):
         for i in range(len(self.__values)):
@@ -150,18 +151,18 @@ Blank cells are permitted in the header, not in data (use 0.0).
         fit = self.fit_iso_xmv()
         for i in range(len(self.__values)):
             self.__values[i]['Q'] = (-self.__values[i]['mv']+
-                                   (fit[0]*(self.__values[i]['bv']**11)+
-                                    (fit[1]*(self.__values[i]['bv']**10))+
-                                    (fit[2]*(self.__values[i]['bv']**9))+
-                                    (fit[3]*(self.__values[i]['bv']**8))+
-                                    (fit[4]*(self.__values[i]['bv']**7))+
-                                    (fit[5]*(self.__values[i]['bv']**6))+
-                                    (fit[6]*(self.__values[i]['bv']**5))+
-                                    (fit[7]*(self.__values[i]['bv']**4))+
-                                    (fit[8]*(self.__values[i]['bv']**3))+
-                                    (fit[9]*(self.__values[i]['bv']**2))+
-                                    (fit[10]*(self.__values[i]['bv']))+fit[11]
-                                    ))/offset
+                                     ((fit[0]*(self.__values[i]['bv']**11))+
+                                      (fit[1]*(self.__values[i]['bv']**10))+
+                                      (fit[2]*(self.__values[i]['bv']**9))+
+                                      (fit[3]*(self.__values[i]['bv']**8))+
+                                      (fit[4]*(self.__values[i]['bv']**7))+
+                                      (fit[5]*(self.__values[i]['bv']**6))+
+                                      (fit[6]*(self.__values[i]['bv']**5))+
+                                      (fit[7]*(self.__values[i]['bv']**4))+
+                                      (fit[8]*(self.__values[i]['bv']**3))+
+                                      (fit[9]*(self.__values[i]['bv']**2))+
+                                      (fit[10]*(self.__values[i]['bv']))+
+                                       fit[11]))/offset
                                     
     def __verify_input_data(self):
         len_check = len(self.__values[1])
@@ -300,3 +301,52 @@ Blank cells are permitted in the header, not in data (use 0.0).
     def save_it(self, filename = 'Midas_Output.txt'):
         with open(filename, 'w') as myfile:
             myfile.write(tabulate([i.values() for i in self.get_values()], self.headers()))
+            
+    def import_members(self):
+        temp = []
+        membership = []
+        with open ('Members.csv', 'r') as myfile:
+            for i, l in enumerate(myfile):
+                pass
+            member_file_length = i
+        with open ('Members.csv', 'r') as myfile:
+            membership_headings = myfile.readline().strip().split(',')
+            for i in range(member_file_length):
+                temp0 = myfile.readline().split(',')
+                temp.append(temp0)
+        
+        for i in range(len(temp)):
+            newmember = {}
+            for j in range(len(temp[i])):
+                if j == 0:
+                    newmember[membership_headings[j]] = int(temp[i][j])
+                elif j == 1:#RA1950
+                    temp1 = temp[i][j].split()
+                    newmember[membership_headings[j]] = 15*(float(temp1[0])+
+                                              float(temp1[1])/60+
+                                              float(temp1[2])/3600)
+                elif j == 2:#DEC1950
+                    temp1 = temp[i][j].split()
+                    newmember[membership_headings[j]] = (float(temp1[0])+
+                                            float(temp1[1])/60+
+                                            float(temp1[2])/3600)
+                elif j == 11:#RA2
+                    temp1 = temp[i][j].split()
+                    newmember[membership_headings[j]] = 15*(float(temp1[0])+
+                                           float(temp1[1])/60+
+                                           float(temp1[2])/3600)
+                elif j == 12:#DEC2
+                    temp1 = temp[i][j].split()
+                    newmember[membership_headings[j]] = (float(temp1[0])+
+                                         float(temp1[1])/60+
+                                         float(temp1[2])/3600)
+                elif j in [8, 9]:
+                    newmember[membership_headings[j]] = temp[i][j]
+                else:
+                    print i, j
+                    newmember[membership_headings[j]] = float(temp[i][j])
+            membership.append(newmember)
+        
+        return membership
+        
+        
