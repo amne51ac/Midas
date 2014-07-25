@@ -231,7 +231,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
         
         return isomap
 
-    def fit_iso(self)
+    def fit_iso(self):
         x = []
         y = []
         isomap = import_iso()
