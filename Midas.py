@@ -9,17 +9,23 @@ All content licensed under GPL unless otherwise noted or required.
 GPL: http://www.gnu.org/copyleft/gpl.html
 """
 
+from tabulate import tabulate
 from math import log
 import numpy as np
 import matplotlib.pyplot as plt
 #import matplotlib.colors as colors
-import pylab
+#import pylab
 
 class Midas():
+    
     """
 Import and append analysis to .csv table of data with headers.
 
 Midas(filename='Raw Midas Data.csv')
+
+This program is not intended to be saving previous sessions, which is why input
+is accepted as CSV while output is in a readable tabular format for checking
+for errors and consistency only.
 
 Available methods are:
 
@@ -32,6 +38,10 @@ Available methods are:
         x_y_map()
             Returns a map of all of the stars in the base, color formatted by
             absolute magnitude.
+            
+        save_it()
+            Saves a tabular txt copy of the cluster data for reviewing only, 
+            can not be re-imported.
             
         
 Appropriate .csv format is (not order restricted, additional columns permitted):
@@ -95,14 +105,20 @@ Blank cells are permitted in the header, not in data (use 0.0).
                 break'''
 
     def __expected_b_minus_v(self):
+        fit = self.fit_iso_xbv()
         for i in range(len(self.__values)):
-            self.__values[i]['xbv'] = ((0.0000176008*(self.__values[i]['mv']**6))-
-                                     (0.0005951859*(self.__values[i]['mv']**5))+
-                                     (0.0076215956*(self.__values[i]['mv']**4))-
-                                     (0.0467622819*(self.__values[i]['mv']**3))+
-                                     (0.1423842899*(self.__values[i]['mv']**2))-
-                                     (0.0185234255*self.__values[i]['mv'])-
-                                     0.1413034474)
+            self.__values[i]['xbv'] = ((fit[0]*(self.__values[i]['mv']**11))+
+                                     (fit[1]*(self.__values[i]['mv']**10))+
+                                     (fit[2]*(self.__values[i]['mv']**9))+
+                                     (fit[3]*(self.__values[i]['mv']**8))+
+                                     (fit[4]*(self.__values[i]['mv']**7))+
+                                     (fit[5]*(self.__values[i]['mv']**6))+
+                                     (fit[6]*(self.__values[i]['mv']**5))+
+                                     (fit[7]*(self.__values[i]['mv']**4))+
+                                     (fit[8]*(self.__values[i]['mv']**3))+
+                                     (fit[9]*(self.__values[i]['mv']**2))+
+                                     (fit[10]*self.__values[i]['mv'])+
+                                     fit[11])
 
     def __b_minus_v_deviation(self):
         for i in range(len(self.__values)):
@@ -110,14 +126,20 @@ Blank cells are permitted in the header, not in data (use 0.0).
                                      self.__values[i]['xbv'])
 
     def __binary_expected_b_minus_v(self, offset=0.753):
+        fit = self.fit_iso_xbv()
         for i in range(len(self.__values)):
-            self.__values[i]['bxbv'] = ((0.0000176008*((self.__values[i]['mv']+offset)**6))-
-                                     (0.0005951859*((self.__values[i]['mv']+offset)**5))+
-                                     (0.0076215956*((self.__values[i]['mv']+offset)**4))-
-                                     (0.0467622819*((self.__values[i]['mv']+offset)**3))+
-                                     (0.1423842899*((self.__values[i]['mv']+offset)**2))-
-                                     (0.0185234255*(self.__values[i]['mv']+offset))-
-                                     0.1413034474)
+            self.__values[i]['bxbv'] = ((fit[0]*((self.__values[i]['mv']+offset)**11))+
+                                     (fit[1]*((self.__values[i]['mv']+offset)**10))+
+                                     (fit[2]*((self.__values[i]['mv']+offset)**9))+
+                                     (fit[3]*((self.__values[i]['mv']+offset)**8))+
+                                     (fit[4]*((self.__values[i]['mv']+offset)**7))+
+                                     (fit[5]*((self.__values[i]['mv']+offset)**6))+
+                                     (fit[6]*((self.__values[i]['mv']+offset)**5))+
+                                     (fit[7]*((self.__values[i]['mv']+offset)**4))+
+                                     (fit[8]*((self.__values[i]['mv']+offset)**3))+
+                                     (fit[9]*((self.__values[i]['mv']+offset)**2))+
+                                     (fit[10]*(self.__values[i]['mv']+offset))+
+                                     fit[11])
                                      
     def __binary_b_minus_v_deviation(self):
         for i in range(len(self.__values)):
@@ -125,14 +147,20 @@ Blank cells are permitted in the header, not in data (use 0.0).
                                           self.__values[i]['bxbv'])
 
     def __q_value(self, offset=0.753):
+        fit = self.fit_iso_xmv()
         for i in range(len(self.__values)):
             self.__values[i]['Q'] = (-self.__values[i]['mv']+
-                                   (-7.5071*(self.__values[i]['bv']**6)+
-                                    33.231*(self.__values[i]['bv']**5)-
-                                    52.543*(self.__values[i]['bv']**4)+
-                                    35.909*(self.__values[i]['bv']**3)-
-                                    9.8787*(self.__values[i]['bv']**2)+
-                                    6.1966*(self.__values[i]['bv'])+1.351
+                                   (fit[0]*(self.__values[i]['bv']**11)+
+                                    (fit[1]*(self.__values[i]['bv']**10))+
+                                    (fit[2]*(self.__values[i]['bv']**9))+
+                                    (fit[3]*(self.__values[i]['bv']**8))+
+                                    (fit[4]*(self.__values[i]['bv']**7))+
+                                    (fit[5]*(self.__values[i]['bv']**6))+
+                                    (fit[6]*(self.__values[i]['bv']**5))+
+                                    (fit[7]*(self.__values[i]['bv']**4))+
+                                    (fit[8]*(self.__values[i]['bv']**3))+
+                                    (fit[9]*(self.__values[i]['bv']**2))+
+                                    (fit[10]*(self.__values[i]['bv']))+fit[11]
                                     ))/offset
                                     
     def __verify_input_data(self):
@@ -230,10 +258,16 @@ Blank cells are permitted in the header, not in data (use 0.0).
         
         for i in newiso:
             isomap.append([i['Mv'], i['B-V']])
+        x = []
+        y = []
+        for i,j in isomap:
+            if (i < 12) and (i > 1):
+                y.append(i)
+                x.append(j)        
         
-        return isomap
+        return x, y
 
-    def fit_iso(self):
+    '''def fit_iso(self):
         x = []
         y = []
         isomap = self.import_iso()
@@ -243,13 +277,26 @@ Blank cells are permitted in the header, not in data (use 0.0).
                 x.append(j)
         # fit the data with a 4th degree polynomial
         z4 = np.polyfit(x, y, 6) 
-        p4 = np.poly1d(z4) # construct the polynomial 
-        print z4
+        p4 = np.poly1d(z4) # construct the polynomial
         z5 = np.polyfit(x, y, 11)
         p5 = np.poly1d(z5)
+        print z5
+        print p5(12)
         
         xx = np.linspace(-0.1, 1.65)
         pylab.plot(x, y, 'o', xx, p4(xx),'-g', xx, p5(xx),'-b')
         pylab.legend(['Isochrone', '6th degree poly', '11th degree poly'])
         pylab.gca().invert_yaxis()
-        pylab.show()
+        pylab.show()'''
+        
+    def fit_iso_xbv(self, age = .2):
+        x, y = self.import_iso(age)
+        return np.polyfit(y, x, 11)
+        
+    def fit_iso_xmv(self, age = .2):
+        x, y = self.import_iso(age)
+        return np.polyfit(x, y, 11)
+        
+    def save_it(self, filename = 'Midas_Output.txt'):
+        with open(filename, 'w') as myfile:
+            myfile.write(tabulate([i.values() for i in self.get_values()], self.headers()))
