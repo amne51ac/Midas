@@ -10,7 +10,7 @@ GPL: http://www.gnu.org/copyleft/gpl.html
 """
 
 from tabulate import tabulate
-from math import log, acos, sin, cos, radians, degrees
+from math import log, acos, sin, cos, radians, asin, atan
 import numpy as np
 import matplotlib.pyplot as plt
 #import matplotlib.colors as colors
@@ -56,10 +56,28 @@ Blank cells are permitted in the header, not in data (use 0.0).
     
     __values = []
     __iso_values = []
+    __membership = []
 
-    #def __init__(self):    
+    def __init__(self, filename='Midas Raw Data.csv', distancepc=470, offset=0.753):
+        self.__import_data(filename)
+        if self.__verify_input_data():
+            self.__absolute_mag(distancepc)
+            self.__b_minus_v()
+            self.__expected_b_minus_v()
+            self.__b_minus_v_deviation()
+            self.__binary_expected_b_minus_v(offset)
+            self.__binary_b_minus_v_deviation()
+            self.__q_value(offset)
+            self.__add_member_mate()
+            self.__import_members()
+            self.__b1950_j2000()
+            self.mating()
+        else:
+            raise TypeError('Invalid File Format, please ensure each column '+
+                            'is properly headed, entry lengths are equal')
+            
 
-    def __init__(self, filename='Midas Raw Data.csv'):
+    def __import_data(self, filename='Midas Raw Data.csv'):
 
         newmidas = []
         count = 0
@@ -88,9 +106,6 @@ Blank cells are permitted in the header, not in data (use 0.0).
             raise TypeError('Invalid File Format, check headers and data types')
                     
         self.__values = newmidas
-        self.__analyze()
-        #self.x_y_map()
-        
 
     def __absolute_mag(self, distance_pc=470):
         for i in range(len(self.__values)):
@@ -106,7 +121,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
                 break'''
 
     def __expected_b_minus_v(self):
-        fit = self.fit_iso_xbv()
+        fit = self.__fit_iso_xbv()
         for i in range(len(self.__values)):
             self.__values[i]['xbv'] = ((fit[0]*(self.__values[i]['mv']**11))+
                                        (fit[1]*(self.__values[i]['mv']**10))+
@@ -127,7 +142,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
                                      self.__values[i]['xbv'])
 
     def __binary_expected_b_minus_v(self, offset=0.753):
-        fit = self.fit_iso_xbv()
+        fit = self.__fit_iso_xbv()
         for i in range(len(self.__values)):
             self.__values[i]['bxbv'] = ((fit[0]*((self.__values[i]['mv']+offset)**11))+
                                         (fit[1]*((self.__values[i]['mv']+offset)**10))+
@@ -148,7 +163,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
                                           self.__values[i]['bxbv'])
 
     def __q_value(self, offset=0.753):
-        fit = self.fit_iso_xmv()
+        fit = self.__fit_iso_xmv()
         for i in range(len(self.__values)):
             self.__values[i]['Q'] = (-self.__values[i]['mv']+
                                      ((fit[0]*(self.__values[i]['bv']**11))+
@@ -177,20 +192,12 @@ Blank cells are permitted in the header, not in data (use 0.0).
                 elif type(key) is not str:
                     return False
         return True
+        
+        
+    def __add_member_mate(self):
+        for i in range(len(self.__values)):
+            self.__values[i]['member mate'] = ''
                                                 
-    def __analyze(self, distancepc=470, offset=0.753):
-        if self.__verify_input_data():
-            self.__absolute_mag(distancepc)
-            self.__b_minus_v()
-            self.__expected_b_minus_v()
-            self.__b_minus_v_deviation()
-            self.__binary_expected_b_minus_v(offset)
-            self.__binary_b_minus_v_deviation()
-            self.__q_value(offset)
-        else:
-            raise TypeError('Invalid File Format, please ensure each column '+
-                            'is properly headed, entry lengths are equal')
-    
     def get_values(self):
         return self.__values
     
@@ -227,10 +234,10 @@ Blank cells are permitted in the header, not in data (use 0.0).
         plt.ion()
         plt.show()
 
-    def import_iso(self, age=.2):
+    def __import_iso(self, age=.2):
         iso = []
         with open("ISO.csv") as myfile: 
-            iso_presets = myfile.readline().split(',')
+            iso_headings = myfile.readline().split(',')
             iso_headings = myfile.readline().split(',')
             while True:
                 temp = myfile.readline().split(',')
@@ -271,7 +278,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
     '''def fit_iso(self):
         x = []
         y = []
-        isomap = self.import_iso()
+        isomap = self.__import_iso()
         for i,j in isomap:
             if (i < 12) and (i > 1):
                 y.append(i)
@@ -290,26 +297,26 @@ Blank cells are permitted in the header, not in data (use 0.0).
         pylab.gca().invert_yaxis()
         pylab.show()'''
         
-    def fit_iso_xbv(self, age = .2):
-        x, y = self.import_iso(age)
+    def __fit_iso_xbv(self, age = .2):
+        x, y = self.__import_iso(age)
         return np.polyfit(y, x, 11)
         
-    def fit_iso_xmv(self, age = .2):
-        x, y = self.import_iso(age)
+    def __fit_iso_xmv(self, age = .2):
+        x, y = self.__import_iso(age)
         return np.polyfit(x, y, 11)
         
     def save_it(self, filename = 'Midas_Output.txt'):
         with open(filename, 'w') as myfile:
             myfile.write(tabulate([i.values() for i in self.get_values()], self.headers()))
             
-    def import_members(self):
+    def __import_members(self, memfilename='Members.csv'):
         temp = []
         membership = []
-        with open ('Members.csv', 'r') as myfile:
+        with open (memfilename, 'r') as myfile:
             for i, l in enumerate(myfile):
                 pass
             member_file_length = i
-        with open ('Members.csv', 'r') as myfile:
+        with open (memfilename, 'r') as myfile:
             membership_headings = myfile.readline().strip().split(',')
             for i in range(member_file_length):
                 temp0 = myfile.readline().split(',')
@@ -343,16 +350,47 @@ Blank cells are permitted in the header, not in data (use 0.0).
                 elif j in [8, 9]:
                     newmember[membership_headings[j]] = temp[i][j]
                 else:
-                    print i, j
                     newmember[membership_headings[j]] = float(temp[i][j])
             membership.append(newmember)
         
-        return membership
-        
-        def distance(self, ra1, dec1, ra2, dec2):
-            return degrees(acos((sin(radians(dec1))*
-                                 sin(radians(dec2)))+
-                                (cos(radians(dec1))*
-                                 cos(radians(dec2))*
-                                 cos(radians(ra1)-
-                                     radians(ra2)))))
+        self.__membership = membership
+    
+    def __separation(self, ra1, dec1, ra2, dec2):
+        return acos((sin(radians(dec1))*
+                     sin(radians(dec2)))+
+                    (cos(radians(dec1))*
+                     cos(radians(dec2))*
+                     cos(radians(ra1)-
+                         radians(ra2))))
+    
+    def __b1950_j2000(self):
+        for i in range(len(self.__membership)):
+            x = (cos(self.__membership[i]['RA1950'])*
+                 cos(self.__membership[i]['DE1950']))
+            y = (sin(self.__membership[i]['RA1950'])*
+                 cos(self.__membership[i]['DE1950']))
+            z = sin(self.__membership[i]['DE1950'])
+            X = 0.999926*x-0.011179*y-0.004859*z
+            Y = 0.011179*x+0.999938*y-0.000027*z
+            Z = 0.004859*x-0.000027*y+0.999988*z
+            r = atan(Y/X)
+            if X < 0:
+                self.__membership[i]['RA2000'] = r + 180
+            elif (Y < 0) and (X > 0):
+                self.__membership[i]['RA2000'] = r + 360
+            else:
+                self.__membership[i]['RA2000'] = r
+                print "RA2000 ERROR 1"
+            self.__membership[i]['DE2000'] = asin(Z)
+    
+    def mating(self):
+        for i,m in enumerate(self.__membership):
+            mate = {'best' : 0, 'score' : 99999}
+            for j,v in enumerate(self.__values):
+                if 'mate' in v:
+                    continue
+                score = self.__separation(v['RA'],v['Declination '],m['RA2000'],m['DE2000'])
+                if score < mate['score']:
+                    mate['score'] = score
+                    mate['best'] = j
+            self.__values[mate['best']]['member mate'] += '%s-%s' %(i, mate['score'])
