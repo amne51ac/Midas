@@ -71,7 +71,6 @@ Blank cells are permitted in the header, not in data (use 0.0).
             self.__add_member_mate()
             self.__import_members()
             self.__b1950_j2000()
-            self.mating()
         else:
             raise TypeError('Invalid File Format, please ensure each column '+
                             'is properly headed, entry lengths are equal')
@@ -232,6 +231,24 @@ Blank cells are permitted in the header, not in data (use 0.0).
         ax.grid(True)
         fig.tight_layout()
         plt.ion()
+        plt.show()
+
+    def hr_diagram(self):
+
+        x = []
+        y = []
+        
+        for i in self.__values:
+            if (i['bvdev'] < 1):
+                x.append(i['mv'])
+                y.append(i['bv'])
+            
+        fig, ax = plt.subplots()
+        ax.scatter(y, x)
+        #ax.grid(True) (i['bv'] < 20) and
+        #fig.tight_layout()
+        #plt.ion()
+        plt.gca().invert_yaxis()
         plt.show()
 
     def __import_iso(self, age=.2):
