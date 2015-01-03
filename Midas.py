@@ -68,9 +68,8 @@ Blank cells are permitted in the header, not in data (use 0.0).
             self.__binary_expected_b_minus_v(offset)
             self.__binary_b_minus_v_deviation()
             self.__q_value(offset)
-            self.__add_member_mate()
-            self.__import_members()
-            self.__b1950_j2000()
+            #self.__add_member_mate()
+            #self.__import_members()
         else:
             raise TypeError('Invalid File Format, please ensure each column '+
                             'is properly headed, entry lengths are equal')
@@ -112,9 +111,12 @@ Blank cells are permitted in the header, not in data (use 0.0).
                                     5*log((distance_pc/10), 10))
 
     def __b_minus_v(self):
-        for i in range(len(self.__values)):
-            self.__values[i]['bv'] = (self.__values[i]['B'] -
-                                      self.__values[i]['V'])
+        for i in reversed(range(len(self.__values))):
+            if self.__values[i]['B'] < 30:
+                self.__values[i]['bv'] = (self.__values[i]['B'] -
+                                          self.__values[i]['V'])
+            else:
+                self.__values.pop(i)
             '''except:
                 print 'The necessary values for the b-v operation are missing'
                 break'''
@@ -239,12 +241,16 @@ Blank cells are permitted in the header, not in data (use 0.0).
         y = []
         
         for i in self.__values:
-            if (i['bvdev'] < 1):
+            if (abs(i['bvdev']) < .1):
                 x.append(i['mv'])
                 y.append(i['bv'])
+                
+        ix, iy = self.__import_iso()
             
         fig, ax = plt.subplots()
         ax.scatter(y, x)
+        plt.plot(ix, iy, 'ro')
+        #ax.scatter(ix, iy, edgecolors='None', cmap='ro')
         #ax.grid(True) (i['bv'] < 20) and
         #fig.tight_layout()
         #plt.ion()
@@ -343,7 +349,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
             newmember = {}
             for j in range(len(temp[i])):
                 if j == 0:
-                    newmember[membership_headings[j]] = int(temp[i][j])
+                      newmember[membership_headings[j]] = int(temp[i][j])
                 elif j == 1:#RA1950
                     temp1 = temp[i][j].split()
                     newmember[membership_headings[j]] = 15*(float(temp1[0])+
@@ -411,3 +417,6 @@ Blank cells are permitted in the header, not in data (use 0.0).
                     mate['score'] = score
                     mate['best'] = j
             self.__values[mate['best']]['member mate'] += '%s-%s' %(i, mate['score'])
+            
+if __name__ == '__main__':
+    m = Midas()
