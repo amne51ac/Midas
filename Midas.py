@@ -70,8 +70,8 @@ Blank cells are permitted in the header, not in data (use 0.0).
             self.__binary_expected_b_minus_v(offset)
             self.__binary_b_minus_v_deviation()
             self.__q_value(offset)
-            #self.__add_member_mate()
-            #self.__import_members()
+            self.__import_members()
+            self.__b1950_j2000()
         else:
             raise TypeError('Invalid File Format, please ensure each column '+
                             'is properly headed, entry lengths are equal')
@@ -443,9 +443,15 @@ Blank cells are permitted in the header, not in data (use 0.0).
         for i, k in enumerate(self.__membership):
             a = self.__precess(k['RA1950'], k['DE1950'], 1950, 2000)
             self.__membership[i]['RA'], self.__membership[i]['Declination'] = a
+            
+    def something(self, ra, dec):
+        a = []
+        for i, k in enumerate(self.__values):
+            a.append(self.__separation(ra, dec, k['RA'], k['Declination ']))
+        return a
      
     def mating(self):
-        for i,m in enumerate(self.__membership):
+        for i, m in enumerate(self.__membership):
             mate = {'best' : 0, 'score' : 99999}
             for j,v in enumerate(self.__values):
                 if 'mate' in v:
