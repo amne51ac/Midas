@@ -12,6 +12,8 @@ GPL: http://www.gnu.org/copyleft/gpl.html
 from tabulate import tabulate
 from math import log, acos, sin, cos, radians, asin, atan
 import numpy as np
+from numpy import deg2rad, transpose, dot, arcsin, arctan2, zeros, ndarray, array, rad2deg, pi
+from premat import premat
 import matplotlib.pyplot as plt
 #import matplotlib.colors as colors
 #import pylab
@@ -378,6 +380,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
         
         self.__membership = membership
     
+    
     def __separation(self, ra1, dec1, ra2, dec2):
         return acos((sin(radians(dec1))*
                      sin(radians(dec2)))+
@@ -385,27 +388,62 @@ Blank cells are permitted in the header, not in data (use 0.0).
                      cos(radians(dec2))*
                      cos(radians(ra1)-
                          radians(ra2))))
+                         
+    def __precess(self, ra0, dec0, equinox1, equinox2, doprint=False, fk4=False, radian=False):
+        scal = True
+        if isinstance(ra0, ndarray):
+            ra = ra0.copy()
+            dec = dec0.copy()
+            scal = False
+        else:
+            ra = array([ra0])
+            dec = array([dec0])
+        npts = ra.size
+    
+        if not radian:
+            ra_rad = deg2rad(ra)     # Convert to double precision if not already
+            dec_rad = deg2rad(dec)
+        else:
+            ra_rad = ra
+            dec_rad = dec
+    
+        a = cos(dec_rad)
+    
+        x = zeros((npts, 3))
+        x[:, 0] = a * np.cos(ra_rad)
+        x[:, 1] = a * np.sin(ra_rad)
+        x[:, 2] = np.sin(dec_rad)
+    
+        # Use PREMAT function to get precession matrix from Equinox1 to Equinox2
+    
+        r = premat(equinox1, equinox2, fk4=fk4)
+    
+        x2 = transpose(dot(transpose(r), transpose(x)))      # rotate to get
+        # output direction cosines
+    
+        ra_rad = zeros(npts) + arctan2(x2[:, 1], x2[:, 0])
+        dec_rad = zeros(npts) + arcsin(x2[:, 2])
+    
+        if not radian:
+            ra = rad2deg(ra_rad)
+            ra = ra + (ra < 0.) * 360.e0            # RA between 0 and 360 degrees
+            dec = rad2deg(dec_rad)
+        else:
+            ra = ra_rad
+            dec = dec_rad
+            ra = ra + (ra < 0.) * 2.0e0 * pi
+    
+        if doprint:
+            print 'Equinox (%.2f): %f,%f' % (equinox2, ra, dec)
+        if scal:
+            ra, dec = ra[0], dec[0]
+        return ra, dec
     
     def __b1950_j2000(self):
-        for i in range(len(self.__membership)):
-            x = (cos(self.__membership[i]['RA1950'])*
-                 cos(self.__membership[i]['DE1950']))
-            y = (sin(self.__membership[i]['RA1950'])*
-                 cos(self.__membership[i]['DE1950']))
-            z = sin(self.__membership[i]['DE1950'])
-            X = 0.999926*x-0.011179*y-0.004859*z
-            Y = 0.011179*x+0.999938*y-0.000027*z
-            Z = 0.004859*x-0.000027*y+0.999988*z
-            r = atan(Y/X)
-            if X < 0:
-                self.__membership[i]['RA2000'] = r + 180
-            elif (Y < 0) and (X > 0):
-                self.__membership[i]['RA2000'] = r + 360
-            else:
-                self.__membership[i]['RA2000'] = r
-                print "RA2000 ERROR 1"
-            self.__membership[i]['DE2000'] = asin(Z)
-    
+        for i, k in enumerate(self.__membership):
+            a = self.__precess(k['RA1950'], k['DE1950'], 1950, 2000)
+            self.__membership[i]['RA'], self.__membership[i]['Declination'] = a
+     
     def mating(self):
         for i,m in enumerate(self.__membership):
             mate = {'best' : 0, 'score' : 99999}
