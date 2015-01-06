@@ -72,9 +72,9 @@ Blank cells are permitted in the header, not in data (use 0.0).
             self.__q_value(offset)
             self.__import_members()
             self.__b1950_j2000()
-            #self.__add_member_mate()
-            #self.__add_member_match_count()
-            self.distance_and_visual_mating()
+            self.__add_member_mate()
+            self.__add_member_match_count()
+            self.__distance_and_visual_mating()
         else:
             raise TypeError('Invalid File Format, please ensure each column '+
                             'is properly headed, entry lengths are equal')
@@ -472,9 +472,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
         
         return count1, count2
             
-    def distance_and_visual_mating(self, dist=0.000025, vdev=4575): #empirical values
-        self.__add_member_match_count()
-        self.__add_member_mate()
+    def __distance_and_visual_mating(self, dist=0.000025, vdev=0.457): #empirical values
         for c, d in enumerate(self.__values):
             for i, k in enumerate(self.__membership):
                 xdist = self.__separation(d['RA'], d['Declination '], k['RA'], k['Declination'])
@@ -482,7 +480,6 @@ Blank cells are permitted in the header, not in data (use 0.0).
                 if (xdist < dist) and (xvdev < vdev):
                     self.__values[c]['mate_candidates'].append([xdist, xvdev, k['ID']])
                     self.__membership[i]['match_count'] += 1
-        print self.__mate_check()
     
             
 if __name__ == '__main__':
