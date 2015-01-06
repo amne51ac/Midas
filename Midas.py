@@ -61,6 +61,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
     __membership = []
 
     def __init__(self, filename='Midas Raw Data.csv', distancepc=470, offset=0.753):
+        print "Welcome to Midas"
         self.__import_data(filename)
         if self.__verify_input_data():
             self.__absolute_mag(distancepc)
@@ -81,6 +82,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
             
 
     def __import_data(self, filename='Midas Raw Data.csv'):
+        print "Importing Data"
 
         newmidas = []
         count = 0
@@ -111,11 +113,13 @@ Blank cells are permitted in the header, not in data (use 0.0).
         self.__values = newmidas
 
     def __absolute_mag(self, distance_pc=470):
+        print "Calculating Absolute Magnitudes"
         for i in range(len(self.__values)):
             self.__values[i]['mv'] = (self.__values[i]['V'] -
                                     5*log((distance_pc/10), 10))
 
     def __b_minus_v(self):
+        print "Calculating B-V Values"
         for i in reversed(range(len(self.__values))):
             if self.__values[i]['B'] < 30:
                 self.__values[i]['bv'] = (self.__values[i]['B'] -
@@ -127,6 +131,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
                 break'''
 
     def __expected_b_minus_v(self):
+        print "Calculating Expected B-V Values"
         fit = self.__fit_iso_xbv()
         for i in range(len(self.__values)):
             self.__values[i]['xbv'] = ((fit[0]*(self.__values[i]['mv']**11))+
@@ -143,11 +148,13 @@ Blank cells are permitted in the header, not in data (use 0.0).
                                         fit[11])
 
     def __b_minus_v_deviation(self):
+        print "Finding B-V Deviation"
         for i in range(len(self.__values)):
             self.__values[i]['bvdev'] = (self.__values[i]['bv'] -
                                      self.__values[i]['xbv'])
 
     def __binary_expected_b_minus_v(self, offset=0.753):
+        print "Projecting Expected B-V for Binary"
         fit = self.__fit_iso_xbv()
         for i in range(len(self.__values)):
             self.__values[i]['bxbv'] = ((fit[0]*((self.__values[i]['mv']+offset)**11))+
@@ -164,11 +171,13 @@ Blank cells are permitted in the header, not in data (use 0.0).
                                          fit[11])
                                      
     def __binary_b_minus_v_deviation(self):
+        print "Finding Binary B-V Deviation"
         for i in range(len(self.__values)):
             self.__values[i]['binbvdev'] = (self.__values[i]['bv'] -
                                           self.__values[i]['bxbv'])
 
     def __q_value(self, offset=0.753):
+        print "Calculating Q Value"
         fit = self.__fit_iso_xmv()
         for i in range(len(self.__values)):
             self.__values[i]['Q'] = (-self.__values[i]['mv']+
@@ -186,6 +195,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
                                        fit[11]))/offset
                                     
     def __verify_input_data(self):
+        print "Verifying Input Data"
         len_check = len(self.__values[1])
         for i in self.__values:
             if type(i) is not dict:
@@ -201,10 +211,12 @@ Blank cells are permitted in the header, not in data (use 0.0).
         
         
     def __add_member_mate(self):
+        print "Adding Member Mate Field"
         for i, k in enumerate(self.__values):
             self.__values[i]['mate_candidates'] = []
             
     def __add_member_match_count(self):
+        print "Adding Member Match Count Field"
         for i, k in enumerate(self.__membership):
             self.__membership[i]['match_count'] = 0
                                                 
@@ -215,7 +227,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
         return self.__values[0].keys()
 
     def x_y_map(self):
-
+        print "Displaying Cartesian Map"
         x = []
         y = []
         c = []
@@ -245,7 +257,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
         plt.show()
 
     def hr_diagram(self):
-
+        print "Genertaing Hertzsprung-Russel Diagram"
         x = []
         y = []
         
@@ -267,6 +279,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
         plt.show()
 
     def __import_iso(self, age=.2):
+        print "Importing Yonsei-Yale Isochrone Data"
         iso = []
         with open("ISO.csv") as myfile: 
             iso_headings = myfile.readline().split(',')
@@ -330,18 +343,22 @@ Blank cells are permitted in the header, not in data (use 0.0).
         pylab.show()'''
         
     def __fit_iso_xbv(self, age = .2):
+        print "Generating 11th Degree Polynomial Regression for X-BV"
         x, y = self.__import_iso(age)
         return np.polyfit(y, x, 11)
         
     def __fit_iso_xmv(self, age = .2):
+        print "Generating 11th Degree Polynomial Regression for X-MV"
         x, y = self.__import_iso(age)
         return np.polyfit(x, y, 11)
         
     def save_it(self, filename = 'Midas_Output.txt'):
+        print "Saving Output"
         with open(filename, 'w') as myfile:
             myfile.write(tabulate([i.values() for i in self.get_values()], self.headers()))
 
     def __import_members(self, memfilename='Members.csv'):
+        print "Importing Jones-Prosser Membership Data"
         temp = []
         membership = []
         with open (memfilename, 'r') as myfile:
@@ -447,11 +464,13 @@ Blank cells are permitted in the header, not in data (use 0.0).
         return ra, dec
     
     def __b1950_j2000(self):
+        print "Precessing"
         for i, k in enumerate(self.__membership):
             a = self.__precess(k['RA1950'], k['DE1950'], 1950, 2000)
             self.__membership[i]['RA'], self.__membership[i]['Declination'] = a
             
     def __distance_mating(self):
+        print "Mating By Distance"
         for c, d in enumerate(self.__values):
             for i, k in enumerate(self.__membership):
                 b = self.__separation(d['RA'], d['Declination '], k['RA'], k['Declination'])
@@ -460,6 +479,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
                     self.__membership[i]['match_count'] += 1
         
     def __mate_check(self):
+        print "Performing Mate Check"
         count1 = 0
         count2 = 0
         for i in self.__values:
@@ -470,9 +490,11 @@ Blank cells are permitted in the header, not in data (use 0.0).
             if i['match_count'] == 0:
                 count2 += 1
         
+        print "Successfully Mated %i stars out of 650! \n%i unmated data points remaining from Jones-Prosser." %(count1, count2)
         return count1, count2
             
     def __distance_and_visual_mating(self, dist=0.000025, vdev=0.457): #empirical values
+        print "Performing Mating Ritual by Distance and Apparent Magnitude"
         for c, d in enumerate(self.__values):
             for i, k in enumerate(self.__membership):
                 xdist = self.__separation(d['RA'], d['Declination '], k['RA'], k['Declination'])
@@ -480,6 +502,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
                 if (xdist < dist) and (xvdev < vdev):
                     self.__values[c]['mate_candidates'].append([xdist, xvdev, k['ID']])
                     self.__membership[i]['match_count'] += 1
+        self.__mate_check()
     
             
 if __name__ == '__main__':
