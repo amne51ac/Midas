@@ -10,7 +10,7 @@ GPL: http://www.gnu.org/copyleft/gpl.html
 """
 
 from tabulate import tabulate
-from math import log, acos, sin, cos, radians, asin, atan
+from math import log, acos, sin, cos, radians
 import numpy as np
 from numpy import deg2rad, transpose, dot, arcsin, arctan2, zeros, ndarray, array, rad2deg, pi
 from premat import premat
@@ -72,6 +72,9 @@ Blank cells are permitted in the header, not in data (use 0.0).
             self.__q_value(offset)
             self.__import_members()
             self.__b1950_j2000()
+            self.__add_member_mate()
+            self.__add_member_match_count()
+            self.__distance_mating()
         else:
             raise TypeError('Invalid File Format, please ensure each column '+
                             'is properly headed, entry lengths are equal')
@@ -198,8 +201,12 @@ Blank cells are permitted in the header, not in data (use 0.0).
         
         
     def __add_member_mate(self):
-        for i in range(len(self.__values)):
-            self.__values[i]['member mate'] = ''
+        for i, k in enumerate(self.__values):
+            self.__values[i]['mate_candidates'] = []
+            
+    def __add_member_match_count(self):
+        for i, k in enumerate(self.__membership):
+            self.__membership[i]['match_count'] = 0
                                                 
     def get_values(self):
         return self.__values
@@ -444,23 +451,28 @@ Blank cells are permitted in the header, not in data (use 0.0).
             a = self.__precess(k['RA1950'], k['DE1950'], 1950, 2000)
             self.__membership[i]['RA'], self.__membership[i]['Declination'] = a
             
-    def something(self, ra, dec):
-        a = []
-        for i, k in enumerate(self.__values):
-            a.append(self.__separation(ra, dec, k['RA'], k['Declination ']))
-        return a
-     
-    def mating(self):
-        for i, m in enumerate(self.__membership):
-            mate = {'best' : 0, 'score' : 99999}
-            for j,v in enumerate(self.__values):
-                if 'mate' in v:
-                    continue
-                score = self.__separation(v['RA'],v['Declination '],m['RA2000'],m['DE2000'])
-                if score < mate['score']:
-                    mate['score'] = score
-                    mate['best'] = j
-            self.__values[mate['best']]['member mate'] += '%s-%s' %(i, mate['score'])
+    def __distance_mating(self):
+        for c, d in enumerate(self.__values):
+            for i, k in enumerate(self.__membership):
+                b = self.__separation(d['RA'], d['Declination '], k['RA'], k['Declination'])
+                if b < 0.000075:
+                    self.__values[c]['mate_candidates'].append([b, k['ID']])
+                    self.__membership[i]['match_count'] += 1
+        
+    def mate_check(self):
+        count = 0
+        count2 = 0
+        for i in self.__values:
+            if i['mate_candidates']:
+                count += len(i['mate_candidates'])
+
+        for i in self.__membership:
+            if i['match_count'] == 0:
+                count2 += 1
+        
+        return count, count2
+    
+    
             
 if __name__ == '__main__':
     m = Midas()
