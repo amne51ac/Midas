@@ -72,9 +72,9 @@ Blank cells are permitted in the header, not in data (use 0.0).
             self.__q_value(offset)
             self.__import_members()
             self.__b1950_j2000()
-            self.__add_member_mate()
-            self.__add_member_match_count()
-            self.__distance_mating()
+            #self.__add_member_mate()
+            #self.__add_member_match_count()
+            self.distance_and_visual_mating()
         else:
             raise TypeError('Invalid File Format, please ensure each column '+
                             'is properly headed, entry lengths are equal')
@@ -340,7 +340,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
     def save_it(self, filename = 'Midas_Output.txt'):
         with open(filename, 'w') as myfile:
             myfile.write(tabulate([i.values() for i in self.get_values()], self.headers()))
-            
+
     def __import_members(self, memfilename='Members.csv'):
         temp = []
         membership = []
@@ -459,19 +459,30 @@ Blank cells are permitted in the header, not in data (use 0.0).
                     self.__values[c]['mate_candidates'].append([b, k['ID']])
                     self.__membership[i]['match_count'] += 1
         
-    def mate_check(self):
-        count = 0
+    def __mate_check(self):
+        count1 = 0
         count2 = 0
         for i in self.__values:
             if i['mate_candidates']:
-                count += len(i['mate_candidates'])
+                count1 += len(i['mate_candidates'])
 
         for i in self.__membership:
             if i['match_count'] == 0:
                 count2 += 1
         
-        return count, count2
-    
+        return count1, count2
+            
+    def distance_and_visual_mating(self, dist=0.000025, vdev=4575): #empirical values
+        self.__add_member_match_count()
+        self.__add_member_mate()
+        for c, d in enumerate(self.__values):
+            for i, k in enumerate(self.__membership):
+                xdist = self.__separation(d['RA'], d['Declination '], k['RA'], k['Declination'])
+                xvdev = abs(d['V'] - k['Vmag'])
+                if (xdist < dist) and (xvdev < vdev):
+                    self.__values[c]['mate_candidates'].append([xdist, xvdev, k['ID']])
+                    self.__membership[i]['match_count'] += 1
+        print self.__mate_check()
     
             
 if __name__ == '__main__':
