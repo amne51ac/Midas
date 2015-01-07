@@ -45,6 +45,31 @@ Available methods are:
             Saves a tabular txt copy of the cluster data for reviewing only, 
             can not be re-imported.
             
+        display_all_jp()
+            Displays both a Cartesian and Herzsprung-Russel depiction of all of
+            the stars in the Jones-Prosser survey, no filter.  Returns a count
+            of all of the stars fitting the above criteria.
+        
+        display_all_mated_members(mem=0)
+            Displays both a Cartesian and Herzsprung-Russel depiction of all of
+            the stars that were successfully mated to Midas data points.  Only
+            filterable by Jones-Prosser membership probability. Returns a count
+            of all of the stars fitting the above criteria.
+        
+        display_all_mates_membership(bvdev=0.1, lowq=0, highq=1, mem=0)
+            Displays both a Cartesian and Herzsprung-Russel depiction of all of
+            the stars that were successfully mated to Midas data points.  Can
+            be filtered by membership probability, Q value, and B-V deviation.
+            Returns a count of all of the stars fitting the above criteria.
+        
+        hr_diagram(bvdev=0.1)
+            Displays a Hertzsprung-Russel diagram of the stars in the Midas 
+            (values) dataset.
+        
+        show_unmated()
+            Returns each of the Jones-Prosser stars that are unmated to a Midas
+            data point.
+            
         
 Appropriate .csv format is (not order restricted, additional columns permitted):
 
@@ -256,13 +281,13 @@ Blank cells are permitted in the header, not in data (use 0.0).
         plt.ion()
         plt.show()
 
-    def hr_diagram(self):
+    def hr_diagram(self, bvdev=0.1):
         print "Genertaing Hertzsprung-Russel Diagram"
         x = []
         y = []
         
         for i in self.__values:
-            if (abs(i['bvdev']) < .1):
+            if (abs(i['bvdev']) < bvdev):
                 x.append(i['mv'])
                 y.append(i['bv'])
                 
@@ -475,7 +500,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
             for i, k in enumerate(self.__membership):
                 b = self.__separation(d['RA'], d['Declination '], k['RA'], k['Declination'])
                 if b < 0.000075:
-                    self.__values[c]['mate_candidates'].append([b, k['ID']])
+                    self.__values[c]['mate_candidates'].append([b, k])
                     self.__membership[i]['match_count'] += 1
         
     def __mate_check(self):
@@ -500,9 +525,195 @@ Blank cells are permitted in the header, not in data (use 0.0).
                 xdist = self.__separation(d['RA'], d['Declination '], k['RA'], k['Declination'])
                 xvdev = abs(d['V'] - k['Vmag'])
                 if (xdist < dist) and (xvdev < vdev):
-                    self.__values[c]['mate_candidates'].append([xdist, xvdev, k['ID']])
+                    self.__values[c]['mate_candidates'].append([xdist, xvdev, k])
                     self.__membership[i]['match_count'] += 1
         self.__mate_check()
+
+    def display_mates_membership(self, bvdev=0.1, lowq=0, highq=1, mem=0):
+        print "Displaying Jones-Prosser Data Mated to Midas Data That Falls Within Membership and Isochrone/Q Value Threshold"
+        x = []
+        y = []
+        c = []
+        s = []
+        m = []
+        x1 = []
+        y1 = []
+        count = 0
+        
+        for i in self.__values:
+            if i['mate_candidates'] and ((abs(i['bvdev']) < bvdev) or
+                                         (i['Q'] <= highq and
+                                          i['Q'] > lowq)):
+                if i['mate_candidates'][0][2]['Mem'] > mem:
+                    x.append(i['X Position'])
+                    y.append(i['Y Position'])
+                    m.append(i['mv'])
+                    x1.append(i['mv'])
+                    y1.append(i['bv'])
+                    if 1 >= i['Q'] >= 0:
+                        c.append(i['Q'])
+                    else:
+                        c.append(0)
+                    s.append(i['bv'])
+                    count += 1
+            
+        print '%i records were accepted' %count
+            
+        for i in c:
+            i = i/max(c)
+        for i in m:
+            i = i/max(m)
+            
+        fig, ax = plt.subplots(nrows=2)
+        ax1, ax2 = ax.ravel()
+        
+        ax1.scatter(x, y, c=m, edgecolors='None', cmap='OrRd', alpha = .5)
+        ax1.grid(True)
+        ax1.set_title('Spatial arrangement')
+        ax1.set_xlabel('X Position')
+        ax1.set_ylabel('Y Position')
+        
+        ix, iy = self.__import_iso()
+        ax2.scatter(y1, x1)
+        ax2.plot(ix, iy, 'y--')
+        ax2.invert_yaxis()
+        ax2.set_title('Hertzsprung-Russell Diagram')
+        ax2.set_ylabel('Mv')
+        ax2.set_xlabel('B-V')
+        
+        fig.subplots_adjust(hspace=0.5)
+        fig.suptitle('Midas and Jones-Prosser Mated Data Points Within 0 < Q <= 1 and .1 B-V Deviation and J-P Membership > 0')
+        
+        #fig.tight_layout()
+        #plt.ion()
+        #plt.gca().invert_yaxis()
+        plt.show()
+        
+        return count
+        
+    def display_all_mated_members(self, mem=0):
+        print "Displaying All Jones-Prosser Points Mated to Midas Points Lying Within J-P Membership Threshold"
+        x = []
+        y = []
+        c = []
+        s = []
+        m = []
+        x1 = []
+        y1 = []
+        count = 0
+        
+        for i in self.__values:
+            if i['mate_candidates']:
+                if i['mate_candidates'][0][2]['Mem'] > mem:
+                    x.append(i['X Position'])
+                    y.append(i['Y Position'])
+                    m.append(i['mv'])
+                    x1.append(i['mv'])
+                    y1.append(i['bv'])
+                    if 1 >= i['Q'] >= 0:
+                        c.append(i['Q'])
+                    else:
+                        c.append(0)
+                    s.append(i['bv'])
+                    count += 1
+            
+        print '%i records were accepted' %count
+            
+        for i in c:
+            i = i/max(c)
+        for i in m:
+            i = i/max(m)
+            
+        fig, ax = plt.subplots(nrows=2)
+        ax1, ax2 = ax.ravel()
+        
+        ax1.scatter(x, y, c=m, edgecolors='None', cmap='OrRd', alpha = .5)
+        ax1.grid(True)
+        ax1.set_title('Spatial arrangement')
+        ax1.set_xlabel('X Position')
+        ax1.set_ylabel('Y Position')
+        
+        ix, iy = self.__import_iso()
+        ax2.scatter(y1, x1)
+        ax2.plot(ix, iy, 'y--')
+        ax2.invert_yaxis()
+        ax2.set_title('Hertzsprung-Russell Diagram')
+        ax2.set_ylabel('Mv')
+        ax2.set_xlabel('B-V')
+        
+        fig.subplots_adjust(hspace=0.5)
+        fig.suptitle('All Successfully Mated Jones-Prosser Data Points With J-P Membership > 0')
+        
+        #fig.tight_layout()
+        #plt.ion()
+        #plt.gca().invert_yaxis()
+        plt.show()
+        
+        return count
+        
+    def display_all_jp(self):
+        print "Displaying All Jones-Prosser Data Points Mated to Midas Points"
+        x = []
+        y = []
+        c = []
+        s = []
+        m = []
+        x1 = []
+        y1 = []
+        count = 0
+        
+        for i in self.__values:
+            if i['mate_candidates']:
+                x.append(i['X Position'])
+                y.append(i['Y Position'])
+                m.append(i['mv'])
+                x1.append(i['mv'])
+                y1.append(i['bv'])
+                if 1 >= i['Q'] >= 0:
+                    c.append(i['Q'])
+                else:
+                    c.append(0)
+                s.append(i['bv'])
+                count += 1
+            
+        print '%i records were accepted' %count
+            
+        for i in c:
+            i = i/max(c)
+        for i in m:
+            i = i/max(m)
+            
+        fig, ax = plt.subplots(nrows=2)
+        ax1, ax2 = ax.ravel()
+        
+        ax1.scatter(x, y, c=m, edgecolors='None', cmap='OrRd', alpha = .5)
+        ax1.grid(True)
+        ax1.set_title('Spatial arrangement')
+        ax1.set_xlabel('X Position')
+        ax1.set_ylabel('Y Position')
+        
+        ix, iy = self.__import_iso()
+        ax2.scatter(y1, x1)
+        ax2.plot(ix, iy, 'y--')
+        ax2.invert_yaxis()
+        ax2.set_title('Hertzsprung-Russell Diagram')
+        ax2.set_ylabel('Mv')
+        ax2.set_xlabel('B-V')
+        
+        fig.subplots_adjust(hspace=0.5)
+        fig.suptitle('All Successfully Mated Jones-Prosser Data Points')
+        
+        #fig.tight_layout()
+        #plt.ion()
+        #plt.gca().invert_yaxis()
+        plt.show()
+        
+        return count
+        
+    def show_unmated(self):
+        for i in self.__membership:
+            if not i['match_count']:
+                print i
     
             
 if __name__ == '__main__':
