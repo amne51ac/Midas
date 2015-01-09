@@ -494,12 +494,12 @@ Blank cells are permitted in the header, not in data (use 0.0).
             a = self.__precess(k['RA1950'], k['DE1950'], 1950, 2000)
             self.__membership[i]['RA'], self.__membership[i]['Declination'] = a
             
-    def __distance_mating(self):
+    def __distance_mating(self, dist=0.000075):
         print "Mating By Distance"
         for c, d in enumerate(self.__values):
             for i, k in enumerate(self.__membership):
                 b = self.__separation(d['RA'], d['Declination '], k['RA'], k['Declination'])
-                if b < 0.000075:
+                if b < dist:
                     self.__values[c]['mate_candidates'].append([b, k])
                     self.__membership[i]['match_count'] += 1
         
@@ -524,8 +524,9 @@ Blank cells are permitted in the header, not in data (use 0.0).
             for i, k in enumerate(self.__membership):
                 xdist = self.__separation(d['RA'], d['Declination '], k['RA'], k['Declination'])
                 xvdev = abs(d['V'] - k['Vmag'])
+                yvdev = d['V'] - k['Vmag']
                 if (xdist < dist) and (xvdev < vdev):
-                    self.__values[c]['mate_candidates'].append([xdist, xvdev, k])
+                    self.__values[c]['mate_candidates'].append([xdist, xvdev, yvdev, k])
                     self.__membership[i]['match_count'] += 1
         self.__mate_check()
 
