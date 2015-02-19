@@ -545,7 +545,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
             if i['mate_candidates'] and ((abs(i['bvdev']) < bvdev) or
                                          (i['Q'] <= highq and
                                           i['Q'] > lowq)):
-                if i['mate_candidates'][0][2]['Mem'] > mem:
+                if i['mate_candidates'][0][3]['Mem'] > mem:
                     x.append(i['X Position'])
                     y.append(i['Y Position'])
                     m.append(i['mv'])
@@ -605,7 +605,7 @@ Blank cells are permitted in the header, not in data (use 0.0).
         
         for i in self.__values:
             if i['mate_candidates']:
-                if i['mate_candidates'][0][2]['Mem'] > mem:
+                if i['mate_candidates'][0][3]['Mem'] > mem:
                     x.append(i['X Position'])
                     y.append(i['Y Position'])
                     m.append(i['mv'])
