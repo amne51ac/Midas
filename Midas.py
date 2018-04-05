@@ -23,7 +23,7 @@ class Midas():
     """
 Import and append analysis to .csv table of data with headers.
 
-Midas(filename='Raw Midas Data.csv')
+Midas(filename='Raw Midas Data.csv', distancepc=470, offset=0.753)
 
 This program is not intended to be saving previous sessions, which is why input
 is accepted as CSV while output is in a readable tabular format for checking
